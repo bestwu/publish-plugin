@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'http://repo.spring.io/plugins-release/' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+//        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+//        classpath 'com.gradle.publish:plugin-publish-plugin:0.9.7'
+//        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1'
+
+        classpath 'cn.bestwu.gradle:publish:0.0.1'
+    }
+}
+
+apply plugin: 'groovy'
+//project.apply(from: "publish.gradle")
+apply plugin: 'cn.bestwu.plugin-publish'
+
+group 'cn.bestwu.gradle'
+version '0.0.1'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+[compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
+
+dependencies {
+    compile gradleApi()
+    compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+    compile 'com.gradle.publish:plugin-publish-plugin:0.9.7'
+    compile('org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1') {
+        exclude module: 'groovy-all'
+    }
+
+    testCompile 'junit:junit:4.2'
+}
