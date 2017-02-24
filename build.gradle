@@ -5,17 +5,18 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-//        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
-//        classpath 'com.gradle.publish:plugin-publish-plugin:0.9.7'
-//        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+        classpath 'com.gradle.publish:plugin-publish-plugin:0.9.7'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1'
 
-        classpath 'cn.bestwu.gradle:publish:0.0.1'
+//        classpath 'cn.bestwu.gradle:publish:0.0.1'
     }
 }
-
-apply plugin: 'groovy'
-//project.apply(from: "publish.gradle")
-apply plugin: 'cn.bestwu.plugin-publish'
+plugins {
+    id 'groovy'
+}
+project.apply(from: 'publish.gradle')
+//apply plugin: 'cn.bestwu.plugin-publish'
 
 group 'cn.bestwu.gradle'
 version '0.0.1'
@@ -35,3 +36,26 @@ dependencies {
 
     testCompile 'junit:junit:4.2'
 }
+
+//发布到gradle plugins
+gradlePlugin.plugins {
+    publish {
+        id = 'cn.bestwu.publish'
+        implementationClass = 'cn.bestwu.gradle.publish.PublishPlugin'
+    }
+    pluginPublish {
+        id = 'cn.bestwu.plugin-publish'
+        implementationClass = 'cn.bestwu.gradle.publish.PluginPublishPlugin'
+    }
+}
+pluginBundle.plugins {
+    publish {
+        id = 'cn.bestwu.publish'
+        displayName = 'publish'
+    }
+    pluginPublish {
+        id = 'cn.bestwu.plugin-publish'
+        displayName = 'plugin-publish'
+    }
+}
+

@@ -1,4 +1,9 @@
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver.PLUGIN_MARKER_SUFFIX
+
+project.plugins.apply('groovy')
 project.plugins.apply('maven-publish')
+project.plugins.apply('java-gradle-plugin')
+project.gradlePlugin.automatedPublishing false
 
 project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {
     classifier = 'sources'
@@ -6,7 +11,7 @@ project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {
 }
 
 project.task('groovydocJar', type: Jar) {
-    classifier = 'groovydoc'
+    classifier = 'javadoc'
     from project.groovydoc
 }
 
@@ -39,7 +44,7 @@ project.publishing {
             }
 
             artifact(project.groovydocJar) {
-                classifier 'groovydoc'
+                classifier 'javadoc'
             }
 
             pom.withXml {
@@ -146,52 +151,101 @@ project.publishing {
 //        }
 //    }
 //}
+project.afterEvaluate({
+    def gradlePlugins = project.gradlePlugin.plugins
+    gradlePlugins.forEach({ declaration ->
+        def publication = project.publishing.publications.create(declaration.name, MavenPublication.class)
+        publication.groupId declaration.id
+        publication.artifactId declaration.id + PLUGIN_MARKER_SUFFIX
+        publication.pom.withXml {
+            asNode().children().last() + {
+                resolveStrategy = DELEGATE_FIRST
+                name "${project.name}"
+                description "${project.name}"
+                url "https://bitbucket.org/bestwu/${project.name}"
+
+                dependencies {
+                    dependency {
+                        groupId project.group
+                        artifactId project.name
+                        version project.version
+                    }
+                }
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'bestwu'
+                        name 'Peter Wu'
+                        email 'piterwu@outlook.com'
+                    }
+                }
+                scm {
+                    url "https://bitbucket.org/bestwu/${project.name}"
+                    connection "scm:https://bestwu@bitbucket.org/bestwu/${project.name}.git"
+                    developerConnection "scm:git@bitbucket.org:bestwu/${project.name}.git"
+                }
+            }
+        }
+    })
+
+    def publicationNames = []
+    publicationNames.add('mavenJava')
+    publicationNames.addAll(gradlePlugins.names)
 //发布到snapshot
-project.plugins.apply('com.jfrog.artifactory')
-project.artifactory {
-    contextUrl = project.findProperty('snapshotContextUrl')
-    publish {
-        repository {
-            repoKey = project.findProperty('snapshotRepoKey')
-            username = project.findProperty('snapshotUsername')
-            password = project.findProperty('snapshotPassword')
-            maven = true
-        }
-        defaults {
-            publications('mavenJava')
-            publishArtifacts = true
-        }
-    }
-}
-
-//发布到私有仓库并同步中央仓库及mavenCentral
-project.plugins.apply('com.jfrog.bintray')
-project.bintray {
-    user = project.findProperty('bintrayUsername')
-    key = project.findProperty('bintrayApiKey')
-    publications = ['mavenJava']
-
-    publish = true
-    //    override = true
-    pkg {
-        repo = 'maven'
-        name = "${project.name}"
-        desc = "${project.name}"
-        vcsUrl = "https://bitbucket.org/bestwu/${project.name}"
-        licenses = ['Apache-2.0']
-        labels = ["${project.name}"]
-
-        version {
-            mavenCentralSync {
-                sync = true
-                user = project.findProperty('mavenCentralUsername')
-                password = project.findProperty('mavenCentralPassword')
-                close = '1'
+    project.plugins.apply('com.jfrog.artifactory')
+    project.artifactory {
+        contextUrl = project.findProperty('snapshotContextUrl')
+        publish {
+            repository {
+                repoKey = project.findProperty('snapshotRepoKey')
+                username = project.findProperty('snapshotUsername')
+                password = project.findProperty('snapshotPassword')
+                maven = true
+            }
+            defaults {
+                publications publicationNames.toArray()
+                publishArtifacts = true
             }
         }
     }
-}
-//        bintrayUpload.dependsOn PublishToMavenLocal
+    project.artifactoryPublish.dependsOn project.publishToMavenLocal
+
+    //发布到私有仓库并同步中央仓库及mavenCentral
+    project.plugins.apply('com.jfrog.bintray')
+    project.bintray {
+        user = project.findProperty('bintrayUsername')
+        key = project.findProperty('bintrayApiKey')
+        publications = publicationNames.toArray()
+
+        publish = true
+        //    override = true
+        pkg {
+            repo = 'maven'
+            name = "${project.name}"
+            desc = "${project.name}"
+            vcsUrl = "https://bitbucket.org/bestwu/${project.name}"
+            licenses = ['Apache-2.0']
+            labels = ["${project.name}"]
+
+            version {
+                mavenCentralSync {
+                    sync = true
+                    user = project.findProperty('mavenCentralUsername')
+                    password = project.findProperty('mavenCentralPassword')
+                    close = '1'
+                }
+            }
+        }
+    }
+    project.bintrayUpload.dependsOn project.publishToMavenLocal
+
+})
 
 //发布到gradle plugins
 project.plugins.apply('com.gradle.plugin-publish')
@@ -201,11 +255,4 @@ project.pluginBundle {
     vcsUrl = "https://bitbucket.org/bestwu/${name}"
     description = "${name}"
     tags = ['bestwu', name]
-
-    plugins {
-        Plugin {
-            id = project.findProperty('pluginId')
-            displayName = "${name}"
-        }
-    }
 }

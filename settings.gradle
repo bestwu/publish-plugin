@@ -1,2 +1,11 @@
+pluginRepositories {
+    try {
+        maven { url mavenLocal }
+        maven { url pluginsMirrorRepo }
+    } catch (ignore) {
+    }
+    gradlePluginPortal()
+}
+
 rootProject.name = 'publish'
 
