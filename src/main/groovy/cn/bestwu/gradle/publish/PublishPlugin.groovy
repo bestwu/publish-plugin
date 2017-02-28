@@ -210,6 +210,7 @@ class PublishPlugin implements Plugin<Project> {
                 labels = ["${project.name}"]
 
                 version {
+                    desc = "${project.name} ${project.version}"
                     mavenCentralSync {
                         sync = true
                         user = project.findProperty('mavenCentralUsername')
