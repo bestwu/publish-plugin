@@ -20,7 +20,9 @@ class PluginPublishPlugin implements Plugin<Project> {
         project.plugins.apply('groovy')
         project.plugins.apply('maven-publish')
         project.plugins.apply('java-gradle-plugin')
-
+        project.plugins.apply('com.gradle.plugin-publish')
+        project.plugins.apply('com.jfrog.artifactory')
+        project.plugins.apply('com.jfrog.bintray')
         project.gradlePlugin.automatedPublishing false
 
         project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {
@@ -37,140 +39,97 @@ class PluginPublishPlugin implements Plugin<Project> {
             archives project.groovydocJar, project.sourcesJar
         }
 
-        project.publishing {
-
-//    repositories {
-//        maven {
-//            name 'Central'
-//            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-//            credentials {
-//                username mavenCentralUsername
-//                password mavenCentralPassword
-//            }
-//        }
-//    }
-            publications {
-                mavenJava(MavenPublication) {
-                    if (project.plugins.hasPlugin('war')) {
-                        from project.components.web
-                    } else {
-                        from project.components.java
-                    }
-
-                    artifact(project.sourcesJar) {
-                        classifier 'sources'
-                    }
-
-                    artifact(project.groovydocJar) {
-                        classifier 'javadoc'
-                    }
-
-                    pom.withXml {
-                        Node root = asNode()
-
-                        //compile
-                        root.dependencies.'*'.findAll() {
-                            it.scope.text() == 'runtime' && project.configurations.compile.dependencies.find { dep ->
-                                dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                            }
-                        }.each {
-                            it.scope*.value = 'compile'
-                        }
-                        //provided
-                        root.dependencies.'*'.findAll() {
-                            it.scope.text() == 'runtime' && project.configurations.provided.dependencies.find { dep ->
-                                dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                            }
-                        }.each {
-                            it.scope*.value = 'provided'
-                        }
-                        //optional
-                        root.dependencies.'*'.findAll() {
-                            it.scope.text() == 'runtime' && project.configurations.optional.dependencies.find { dep ->
-                                dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                            }
-                        }.each {
-                            it.scope*.value = 'compile'
-                            it.appendNode('optional', 'true')
+        project.extensions.create('publish', PublishExtension)
+        project.afterEvaluate {
+            if (!project.publish.projectUrl)
+                throw new RuntimeException("未设置项目URL:\n" +
+                        "publish {\n" +
+                        "    projectUrl = \"https://...\"\n" +
+                        "    vcsUrl = \"https://...\"\n" +
+                        "}")
+            if (!project.publish.vcsUrl)
+                throw new RuntimeException("未设置项目vcsUrl" +
+                        "publish {\n" +
+                        "    projectUrl = \"https://...\"\n" +
+                        "    vcsUrl = \"https://...\"\n" +
+                        "}")
+            project.publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        if (project.plugins.hasPlugin('war')) {
+                            from project.components.web
+                        } else {
+                            from project.components.java
                         }
 
-                        root.children().last() + {
-                            resolveStrategy = DELEGATE_FIRST
-                            name "${project.name}"
-                            packaging 'jar'
-                            description "${project.name}"
-                            url "https://bitbucket.org/bestwu/${project.name}"
-                            licenses {
-                                license {
-                                    name 'The Apache Software License, Version 2.0'
-                                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                    distribution 'repo'
+                        artifact(project.sourcesJar) {
+                            classifier 'sources'
+                        }
+
+                        artifact(project.groovydocJar) {
+                            classifier 'javadoc'
+                        }
+
+                        pom.withXml {
+                            Node root = asNode()
+
+                            //compile
+                            root.dependencies.'*'.findAll() {
+                                it.scope.text() == 'runtime' && project.configurations.compile.dependencies.find { dep ->
+                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
                                 }
+                            }.each {
+                                it.scope*.value = 'compile'
                             }
-                            developers {
-                                developer {
-                                    id 'bestwu'
-                                    name 'Peter Wu'
-                                    email 'piterwu@outlook.com'
+                            //provided
+                            root.dependencies.'*'.findAll() {
+                                it.scope.text() == 'runtime' && project.configurations.provided.dependencies.find { dep ->
+                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
                                 }
+                            }.each {
+                                it.scope*.value = 'provided'
                             }
-                            scm {
-                                url "https://bitbucket.org/bestwu/${project.name}"
-                                connection "scm:https://bestwu@bitbucket.org/bestwu/${project.name}.git"
-                                developerConnection "scm:git@bitbucket.org:bestwu/${project.name}.git"
+                            //optional
+                            root.dependencies.'*'.findAll() {
+                                it.scope.text() == 'runtime' && project.configurations.optional.dependencies.find { dep ->
+                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
+                                }
+                            }.each {
+                                it.scope*.value = 'compile'
+                                it.appendNode('optional', 'true')
+                            }
+
+                            root.children().last() + {
+                                resolveStrategy = DELEGATE_FIRST
+                                name "${project.name}"
+                                packaging 'jar'
+                                description "${project.name}"
+                                url project.publish.projectUrl
+                                licenses {
+                                    license {
+                                        name 'The Apache Software License, Version 2.0'
+                                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                                        distribution 'repo'
+                                    }
+                                }
+                                developers {
+                                    developer {
+                                        id 'bestwu'
+                                        name 'Peter Wu'
+                                        email 'piterwu@outlook.com'
+                                    }
+                                }
+                                scm {
+                                    url project.publish.vcsUrl
+                                    connection "scm:git:$project.publish.vcsUrl"
+                                    developerConnection "scm:git:$project.publish.vcsUrl"
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-//apply plugin: 'maven'
-//apply plugin: 'signing'
-//
-//signing {
-//    required { !version.endsWith("-SNAPSHOT") && gradle.taskGraph.hasTask("uploadArchives") }
-//    sign configurations.archives
-//}
-//
-//uploadArchives {
-//    repositories.mavenDeployer {
-//        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-//        name = 'mavenCentralReleaseDeployer'
-//        repository(url: 'https://oss.sonatype.org/service/local/staging/deploy/maven2/') {
-//            authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
-//            releases(updatePolicy: 'always')
-//            snapshots(updatePolicy: 'always')
-//        }
-//        pom.project {
-//            name "${project.name}"
-//            packaging 'jar'
-//            description "${project.name}"
-//            url "https://bitbucket.org/bestwu/${project.name}"
-//            licenses {
-//                license {
-//                    name 'The Apache Software License, Version 2.0'
-//                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//                    distribution 'repo'
-//                }
-//            }
-//            developers {
-//                developer {
-//                    id 'bestwu'
-//                    name 'Peter Wu'
-//                    email 'piterwu@outlook.com'
-//                }
-//            }
-//            scm {
-//                url "https://bitbucket.org/bestwu/${project.name}"
-//                connection "scm:https://bestwu@bitbucket.org/bestwu/${project.name}.git"
-//                developerConnection "scm:git@bitbucket.org:bestwu/${project.name}.git"
-//            }
-//        }
-//    }
-//}
-
-        project.afterEvaluate({
             def gradlePlugins = project.gradlePlugin.plugins
             gradlePlugins.forEach({ declaration ->
                 def publication = project.publishing.publications.create(declaration.name, MavenPublication.class)
@@ -181,7 +140,7 @@ class PluginPublishPlugin implements Plugin<Project> {
                         resolveStrategy = DELEGATE_FIRST
                         name "${project.name}"
                         description "${project.name}"
-                        url "https://bitbucket.org/bestwu/${project.name}"
+                        url project.publish.projectUrl
 
                         dependencies {
                             dependency {
@@ -205,9 +164,9 @@ class PluginPublishPlugin implements Plugin<Project> {
                             }
                         }
                         scm {
-                            url "https://bitbucket.org/bestwu/${project.name}"
-                            connection "scm:https://bestwu@bitbucket.org/bestwu/${project.name}.git"
-                            developerConnection "scm:git@bitbucket.org:bestwu/${project.name}.git"
+                            url project.publish.vcsUrl
+                            connection "scm:git:$project.publish.vcsUrl"
+                            developerConnection "scm:git:$project.publish.vcsUrl"
                         }
                     }
                 }
@@ -218,7 +177,6 @@ class PluginPublishPlugin implements Plugin<Project> {
             publicationNames.addAll(gradlePlugins.names)
 
             //发布到snapshot
-            project.plugins.apply('com.jfrog.artifactory')
             project.artifactory {
                 contextUrl = project.findProperty('snapshotContextUrl')
                 publish {
@@ -237,7 +195,6 @@ class PluginPublishPlugin implements Plugin<Project> {
             project.artifactoryPublish.dependsOn project.publishToMavenLocal
 
             //发布到私有仓库并同步中央仓库及mavenCentral
-            project.plugins.apply('com.jfrog.bintray')
             project.bintray {
                 user = project.findProperty('bintrayUsername')
                 key = project.findProperty('bintrayApiKey')
@@ -249,7 +206,8 @@ class PluginPublishPlugin implements Plugin<Project> {
                     repo = 'maven'
                     name = "${project.name}"
                     desc = "${project.name}"
-                    vcsUrl = "https://bitbucket.org/bestwu/${project.name}"
+                    websiteUrl = project.publish.projectUrl
+                    vcsUrl = project.publish.vcsUrl
                     licenses = ['Apache-2.0']
                     labels = ["${project.name}"]
 
@@ -266,16 +224,14 @@ class PluginPublishPlugin implements Plugin<Project> {
             }
             project.bintrayUpload.dependsOn project.publishToMavenLocal
 
-        })
-
-        //发布到gradle plugins
-        project.plugins.apply('com.gradle.plugin-publish')
-        String name = "${project.name}"
-        project.pluginBundle {
-            website = "https://bitbucket.org/bestwu/${name}"
-            vcsUrl = "https://bitbucket.org/bestwu/${name}"
-            description = "${name}"
-            tags = ['bestwu', name]
+            //发布到gradle plugins
+            String name = "${project.name}"
+            project.pluginBundle {
+                website = project.publish.projectUrl
+                vcsUrl = project.publish.vcsUrl
+                description = "${name}"
+                tags = [name]
+            }
         }
     }
 }

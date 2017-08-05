@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.jetbrains.dokka.gradle.DokkaTask
 
 /**
  *
@@ -11,11 +12,12 @@ import org.gradle.api.tasks.bundling.Jar
  *
  * @author Peter Wu
  */
-class PublishPlugin implements Plugin<Project> {
+class KotlinPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
         project.plugins.apply('java')
+        project.plugins.apply('org.jetbrains.dokka')
         project.plugins.apply('maven-publish')
         project.plugins.apply('com.jfrog.artifactory')
         project.plugins.apply('com.jfrog.bintray')
@@ -34,15 +36,19 @@ class PublishPlugin implements Plugin<Project> {
             from project.sourceSets.main.allSource
         }
 
+        project.task('dokkaJavadoc', type: DokkaTask) {
+            outputFormat = "javadoc"
+            outputDirectory = "$project.buildDir/dokkaJavadoc"
+        }
+
         project.task('javadocJar', type: Jar) {
             classifier = 'javadoc'
-            from project.javadoc
+            from project.dokkaJavadoc
         }
 
         project.artifacts {
             archives project.javadocJar, project.sourcesJar
         }
-
 
         project.extensions.create('publish', PublishExtension)
         project.afterEvaluate {

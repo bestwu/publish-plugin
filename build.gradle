@@ -1,10 +1,10 @@
 plugins {
     id 'groovy'
-    id 'cn.bestwu.plugin-publish' version '0.0.1'
+    id 'cn.bestwu.plugin-publish' version '0.0.4'
 }
 
 group 'cn.bestwu.gradle'
-version '0.0.2'
+version '0.0.4'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -15,6 +15,7 @@ dependencies {
     compile gradleApi()
     compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
     compile 'com.gradle.publish:plugin-publish-plugin:0.9.7'
+    compile 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.15'
     compile('org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1') {
         exclude module: 'groovy-all'
     }
@@ -32,6 +33,14 @@ gradlePlugin.plugins {
         id = 'cn.bestwu.plugin-publish'
         implementationClass = 'cn.bestwu.gradle.publish.PluginPublishPlugin'
     }
+    groovyPublish {
+        id = 'cn.bestwu.groovy-publish'
+        implementationClass = 'cn.bestwu.gradle.publish.GroovyPublishPlugin'
+    }
+    kotlinPublish {
+        id = 'cn.bestwu.kotlin-publish'
+        implementationClass = 'cn.bestwu.gradle.publish.KotlinPublishPlugin'
+    }
 }
 pluginBundle.plugins {
     publish {
@@ -42,5 +51,17 @@ pluginBundle.plugins {
         id = 'cn.bestwu.plugin-publish'
         displayName = 'plugin-publish'
     }
+    groovyPublish {
+        id = 'cn.bestwu.groovy-publish'
+        displayName = 'groovy-publish'
+    }
+    kotlinPublish {
+        id = 'cn.bestwu.kotlin-publish'
+        displayName = 'kotlin-publish'
+    }
 }
 
+publish {
+    projectUrl = "https://bitbucket.org/betterwu/publish-plugin"
+    vcsUrl = "https://bestwu@bitbucket.org/betterwu/publish-plugin.git"
+}

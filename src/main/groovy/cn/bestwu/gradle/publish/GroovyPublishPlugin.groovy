@@ -11,11 +11,11 @@ import org.gradle.api.tasks.bundling.Jar
  *
  * @author Peter Wu
  */
-class PublishPlugin implements Plugin<Project> {
+class GroovyPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.apply('java')
+        project.plugins.apply('groovy')
         project.plugins.apply('maven-publish')
         project.plugins.apply('com.jfrog.artifactory')
         project.plugins.apply('com.jfrog.bintray')
@@ -36,13 +36,12 @@ class PublishPlugin implements Plugin<Project> {
 
         project.task('javadocJar', type: Jar) {
             classifier = 'javadoc'
-            from project.javadoc
+            from project.groovydoc
         }
 
         project.artifacts {
             archives project.javadocJar, project.sourcesJar
         }
-
 
         project.extensions.create('publish', PublishExtension)
         project.afterEvaluate {
