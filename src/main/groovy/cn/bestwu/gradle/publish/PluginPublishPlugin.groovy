@@ -17,12 +17,18 @@ class PluginPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.apply('groovy')
-        project.plugins.apply('maven-publish')
-        project.plugins.apply('java-gradle-plugin')
-        project.plugins.apply('com.gradle.plugin-publish')
-        project.plugins.apply('com.jfrog.artifactory')
-        project.plugins.apply('com.jfrog.bintray')
+        if (!project.plugins.hasPlugin('groovy'))
+            project.plugins.apply('groovy')
+        if (!project.plugins.hasPlugin('maven-publish'))
+            project.plugins.apply('maven-publish')
+        if (!project.plugins.hasPlugin('java-gradle-plugin'))
+            project.plugins.apply('java-gradle-plugin')
+        if (!project.plugins.hasPlugin('com.gradle.plugin-publish'))
+            project.plugins.apply('com.gradle.plugin-publish')
+        if (!project.plugins.hasPlugin('com.jfrog.artifactory'))
+            project.plugins.apply('com.jfrog.artifactory')
+        if (!project.plugins.hasPlugin('com.jfrog.bintray'))
+            project.plugins.apply('com.jfrog.bintray')
         project.gradlePlugin.automatedPublishing false
 
         project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {

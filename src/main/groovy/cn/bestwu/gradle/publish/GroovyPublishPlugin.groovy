@@ -15,10 +15,14 @@ class GroovyPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.apply('groovy')
-        project.plugins.apply('maven-publish')
-        project.plugins.apply('com.jfrog.artifactory')
-        project.plugins.apply('com.jfrog.bintray')
+        if (!project.plugins.hasPlugin('groovy'))
+            project.plugins.apply('groovy')
+        if (!project.plugins.hasPlugin('maven-publish'))
+            project.plugins.apply('maven-publish')
+        if (!project.plugins.hasPlugin('com.jfrog.artifactory'))
+            project.plugins.apply('com.jfrog.artifactory')
+        if (!project.plugins.hasPlugin('com.jfrog.bintray'))
+            project.plugins.apply('com.jfrog.bintray')
 
         project.javadoc {
             options {

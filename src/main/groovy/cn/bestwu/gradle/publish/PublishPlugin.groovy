@@ -15,10 +15,14 @@ class PublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        project.plugins.apply('java')
-        project.plugins.apply('maven-publish')
-        project.plugins.apply('com.jfrog.artifactory')
-        project.plugins.apply('com.jfrog.bintray')
+        if (!project.plugins.hasPlugin('java'))
+            project.plugins.apply('java')
+        if (!project.plugins.hasPlugin('maven-publish'))
+            project.plugins.apply('maven-publish')
+        if (!project.plugins.hasPlugin('com.jfrog.artifactory'))
+            project.plugins.apply('com.jfrog.artifactory')
+        if (!project.plugins.hasPlugin('com.jfrog.bintray'))
+            project.plugins.apply('com.jfrog.bintray')
 
         project.javadoc {
             options {
