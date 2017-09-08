@@ -11,14 +11,15 @@ targetCompatibility = 1.7
 
 [compileJava, javadoc, compileTestJava]*.options*.encoding = 'UTF-8'
 
+repositories {
+    jcenter()
+}
+
 dependencies {
     compile gradleApi()
-    compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
+    compile 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
     compile 'com.gradle.publish:plugin-publish-plugin:0.9.7'
     compile 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.15'
-    compile('org.jfrog.buildinfo:build-info-extractor-gradle:4.0.1') {
-        exclude module: 'groovy-all'
-    }
 
     testCompile 'junit:junit:4.2'
 }

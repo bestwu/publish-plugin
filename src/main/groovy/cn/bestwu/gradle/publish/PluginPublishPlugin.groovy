@@ -25,10 +25,7 @@ class PluginPublishPlugin implements Plugin<Project> {
             project.plugins.apply('java-gradle-plugin')
         if (!project.plugins.hasPlugin('com.gradle.plugin-publish'))
             project.plugins.apply('com.gradle.plugin-publish')
-        if (!project.plugins.hasPlugin('com.jfrog.artifactory'))
-            project.plugins.apply('com.jfrog.artifactory')
-        if (!project.plugins.hasPlugin('com.jfrog.bintray'))
-            project.plugins.apply('com.jfrog.bintray')
+
         project.gradlePlugin.automatedPublishing false
 
         project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {
@@ -178,65 +175,70 @@ class PluginPublishPlugin implements Plugin<Project> {
                 }
             })
 
-            def publicationNames = []
-            publicationNames.add('mavenJava')
-            publicationNames.addAll(gradlePlugins.names)
-
-            //发布到snapshot
-            project.artifactory {
-                contextUrl = project.findProperty('snapshotContextUrl')
-                publish {
-                    repository {
-                        repoKey = project.findProperty('snapshotRepoKey')
-                        username = project.findProperty('snapshotUsername')
-                        password = project.findProperty('snapshotPassword')
-                        maven = true
-                    }
-                    defaults {
-                        publications publicationNames.toArray()
-                        publishArtifacts = true
-                    }
-                }
-            }
-            project.artifactoryPublish.dependsOn project.publishToMavenLocal
-
-            //发布到私有仓库并同步中央仓库及mavenCentral
-            project.bintray {
-                user = project.findProperty('bintrayUsername')
-                key = project.findProperty('bintrayApiKey')
-                publications = publicationNames.toArray()
-
-                publish = true
-                //    override = true
-                pkg {
-                    repo = 'maven'
-                    name = "${project.name}"
-                    desc = "${project.name}"
-                    websiteUrl = project.publish.projectUrl
-                    vcsUrl = project.publish.vcsUrl
-                    licenses = ['Apache-2.0']
-                    labels = ["${project.name}"]
-
-                    version {
-                        desc = "${project.name} ${project.version}"
-                        mavenCentralSync {
-                            sync = true
-                            user = project.findProperty('mavenCentralUsername')
-                            password = project.findProperty('mavenCentralPassword')
-                            close = '1'
+            if (project.plugins.hasPlugin('com.jfrog.artifactory')) {
+                //发布到snapshot
+                def publicationNames = []
+                publicationNames.add('mavenJava')
+                publicationNames.addAll(gradlePlugins.names)
+                project.artifactory {
+                    contextUrl = project.findProperty('snapshotContextUrl')
+                    publish {
+                        repository {
+                            repoKey = project.findProperty('snapshotRepoKey')
+                            username = project.findProperty('snapshotUsername')
+                            password = project.findProperty('snapshotPassword')
+                            maven = true
+                        }
+                        defaults {
+                            publications publicationNames.toArray()
+                            publishArtifacts = true
                         }
                     }
                 }
+                project.artifactoryPublish.dependsOn project.publishToMavenLocal
             }
-            project.bintrayUpload.dependsOn project.publishToMavenLocal
+            if (project.plugins.hasPlugin('com.jfrog.bintray')) {
+                //发布到私有仓库并同步中央仓库及mavenCentral
+                def publicationNames = []
+                publicationNames.add('mavenJava')
+                publicationNames.addAll(gradlePlugins.names)
+                project.bintray {
+                    user = project.findProperty('bintrayUsername')
+                    key = project.findProperty('bintrayApiKey')
+                    publications = publicationNames.toArray()
 
-            //发布到gradle plugins
-            String name = "${project.name}"
-            project.pluginBundle {
-                website = project.publish.projectUrl
-                vcsUrl = project.publish.vcsUrl
-                description = "${name}"
-                tags = [name]
+                    publish = true
+                    //    override = true
+                    pkg {
+                        repo = 'maven'
+                        name = "${project.name}"
+                        desc = "${project.name}"
+                        websiteUrl = project.publish.projectUrl
+                        vcsUrl = project.publish.vcsUrl
+                        licenses = ['Apache-2.0']
+                        labels = ["${project.name}"]
+
+                        version {
+                            desc = "${project.name} ${project.version}"
+                            mavenCentralSync {
+                                sync = true
+                                user = project.findProperty('mavenCentralUsername')
+                                password = project.findProperty('mavenCentralPassword')
+                                close = '1'
+                            }
+                        }
+                    }
+                }
+                project.bintrayUpload.dependsOn project.publishToMavenLocal
+
+                //发布到gradle plugins
+                String name = "${project.name}"
+                project.pluginBundle {
+                    website = project.publish.projectUrl
+                    vcsUrl = project.publish.vcsUrl
+                    description = "${name}"
+                    tags = [name]
+                }
             }
         }
     }

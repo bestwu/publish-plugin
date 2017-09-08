@@ -22,8 +22,6 @@ class KotlinPublishPlugin implements Plugin<Project> {
             project.plugins.apply('org.jetbrains.dokka')
         if (!project.plugins.hasPlugin('maven-publish'))
             project.plugins.apply('maven-publish')
-        if (!project.plugins.hasPlugin('com.jfrog.artifactory'))
-            project.plugins.apply('com.jfrog.artifactory')
         if (!project.plugins.hasPlugin('com.jfrog.bintray'))
             project.plugins.apply('com.jfrog.bintray')
 
@@ -146,24 +144,25 @@ class KotlinPublishPlugin implements Plugin<Project> {
                 }
             }
 
-            //发布到snapshot
-            project.artifactory {
-                contextUrl = project.findProperty('snapshotContextUrl')
-                publish {
-                    repository {
-                        repoKey = project.findProperty('snapshotRepoKey')
-                        username = project.findProperty('snapshotUsername')
-                        password = project.findProperty('snapshotPassword')
-                        maven = true
-                    }
-                    defaults {
-                        publications('mavenJava')
-                        publishArtifacts = true
+            if (project.plugins.hasPlugin('com.jfrog.artifactory')) {
+                //发布到snapshot
+                project.artifactory {
+                    contextUrl = project.findProperty('snapshotContextUrl')
+                    publish {
+                        repository {
+                            repoKey = project.findProperty('snapshotRepoKey')
+                            username = project.findProperty('snapshotUsername')
+                            password = project.findProperty('snapshotPassword')
+                            maven = true
+                        }
+                        defaults {
+                            publications('mavenJava')
+                            publishArtifacts = true
+                        }
                     }
                 }
+                project.artifactoryPublish.dependsOn project.publishToMavenLocal
             }
-            project.artifactoryPublish.dependsOn project.publishToMavenLocal
-
             //发布到私有仓库并同步中央仓库及mavenCentral
             project.bintray {
                 user = project.findProperty('bintrayUsername')
