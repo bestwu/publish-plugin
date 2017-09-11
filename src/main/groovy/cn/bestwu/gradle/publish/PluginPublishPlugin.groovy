@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
+import org.jetbrains.dokka.gradle.DokkaTask
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver.PLUGIN_MARKER_SUFFIX
 
@@ -17,8 +18,6 @@ class PluginPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        if (!project.plugins.hasPlugin('groovy'))
-            project.plugins.apply('groovy')
         if (!project.plugins.hasPlugin('maven-publish'))
             project.plugins.apply('maven-publish')
         if (!project.plugins.hasPlugin('java-gradle-plugin'))
@@ -28,18 +27,47 @@ class PluginPublishPlugin implements Plugin<Project> {
 
         project.gradlePlugin.automatedPublishing false
 
-        project.task('sourcesJar', type: Jar, dependsOn: project.compileGroovy) {
+        project.javadoc {
+            options {
+                encoding 'UTF-8'
+                charSet 'UTF-8'
+                author true
+                version true
+            }
+        }
+
+        project.task('sourcesJar', type: Jar, dependsOn: project.compileJava) {
             classifier = 'sources'
             from project.sourceSets.main.allSource
         }
 
-        project.task('groovydocJar', type: Jar) {
-            classifier = 'javadoc'
-            from project.groovydoc
+        if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
+            if (!project.plugins.hasPlugin('org.jetbrains.dokka'))
+                project.plugins.apply('org.jetbrains.dokka')
+
+            project.task('dokkaJavadoc', type: DokkaTask) {
+                outputFormat = "javadoc"
+                outputDirectory = "$project.buildDir/dokkaJavadoc"
+            }
+
+            project.task('javadocJar', type: Jar) {
+                classifier = 'javadoc'
+                from project.dokkaJavadoc
+            }
+        } else if (project.plugins.hasPlugin('groovy')) {
+            project.task('javadocJar', type: Jar) {
+                classifier = 'javadoc'
+                from project.groovydoc
+            }
+        } else {
+            project.task('javadocJar', type: Jar) {
+                classifier = 'javadoc'
+                from project.javadoc
+            }
         }
 
         project.artifacts {
-            archives project.groovydocJar, project.sourcesJar
+            archives project.javadocJar, project.sourcesJar
         }
 
         project.extensions.create('publish', PublishExtension)
@@ -69,7 +97,7 @@ class PluginPublishPlugin implements Plugin<Project> {
                             classifier 'sources'
                         }
 
-                        artifact(project.groovydocJar) {
+                        artifact(project.javadocJar) {
                             classifier 'javadoc'
                         }
 
