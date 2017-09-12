@@ -2,6 +2,7 @@ package cn.bestwu.gradle.publish
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 /**
@@ -23,11 +24,6 @@ abstract class AbstractPlugin implements Plugin<Project> {
                 author true
                 version true
             }
-        }
-
-        project.task('sourcesJar', type: Jar, dependsOn: project.compileJava) {
-            classifier = 'sources'
-            from project.sourceSets.main.allSource
         }
 
         def projectUrl = project.findProperty('projectUrl')
@@ -163,5 +159,12 @@ abstract class AbstractPlugin implements Plugin<Project> {
             }
         }
         project.bintrayUpload.dependsOn project.publishToMavenLocal
+    }
+
+    protected Task sourcesJar(Project project) {
+        project.task('sourcesJar', type: Jar, dependsOn: project.compileJava) {
+            classifier = 'sources'
+            from project.sourceSets.main.allSource
+        }
     }
 }

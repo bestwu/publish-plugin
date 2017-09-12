@@ -14,6 +14,8 @@ class KotlinPublishPlugin extends AbstractPlugin {
 
     @Override
     void apply(Project project) {
+        sourcesJar(project)
+
         project.plugins.apply('org.jetbrains.dokka')
         project.afterEvaluate {
             project.task('dokkaJavadoc', type: DokkaTask) {

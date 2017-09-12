@@ -21,6 +21,7 @@ class PluginPublishPlugin extends AbstractPlugin {
         project.plugins.apply('com.gradle.plugin-publish')
 
         project.gradlePlugin.automatedPublishing false
+        sourcesJar(project)
 
         project.afterEvaluate {
             if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {

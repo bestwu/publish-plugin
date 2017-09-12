@@ -13,6 +13,8 @@ class GroovyPublishPlugin extends AbstractPlugin {
 
     @Override
     void apply(Project project) {
+        sourcesJar(project)
+
         project.afterEvaluate {
             project.task('javadocJar', type: Jar) {
                 classifier = 'javadoc'
