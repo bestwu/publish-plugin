@@ -1,6 +1,6 @@
 plugins {
     id 'groovy'
-    id 'cn.bestwu.plugin-publish' version '0.0.6'
+    id 'cn.bestwu.plugin-publish' version '0.0.7'
 }
 
 group 'cn.bestwu.gradle'
@@ -22,47 +22,4 @@ dependencies {
     compile 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.15'
 
     testCompile 'junit:junit:4.2'
-}
-
-//发布到gradle plugins
-gradlePlugin.plugins {
-    publish {
-        id = 'cn.bestwu.publish'
-        implementationClass = 'cn.bestwu.gradle.publish.PublishPlugin'
-    }
-    pluginPublish {
-        id = 'cn.bestwu.plugin-publish'
-        implementationClass = 'cn.bestwu.gradle.publish.PluginPublishPlugin'
-    }
-    groovyPublish {
-        id = 'cn.bestwu.groovy-publish'
-        implementationClass = 'cn.bestwu.gradle.publish.GroovyPublishPlugin'
-    }
-    kotlinPublish {
-        id = 'cn.bestwu.kotlin-publish'
-        implementationClass = 'cn.bestwu.gradle.publish.KotlinPublishPlugin'
-    }
-}
-pluginBundle.plugins {
-    publish {
-        id = 'cn.bestwu.publish'
-        displayName = 'publish'
-    }
-    pluginPublish {
-        id = 'cn.bestwu.plugin-publish'
-        displayName = 'plugin-publish'
-    }
-    groovyPublish {
-        id = 'cn.bestwu.groovy-publish'
-        displayName = 'groovy-publish'
-    }
-    kotlinPublish {
-        id = 'cn.bestwu.kotlin-publish'
-        displayName = 'kotlin-publish'
-    }
-}
-
-publish {
-    projectUrl = "https://bitbucket.org/betterwu/publish-plugin"
-    vcsUrl = "https://bestwu@bitbucket.org/betterwu/publish-plugin.git"
 }

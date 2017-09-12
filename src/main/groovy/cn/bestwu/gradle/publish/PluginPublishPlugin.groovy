@@ -1,6 +1,5 @@
 package cn.bestwu.gradle.publish
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
@@ -14,154 +13,56 @@ import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginRes
  *
  * @author Peter Wu
  */
-class PluginPublishPlugin implements Plugin<Project> {
+class PluginPublishPlugin extends AbstractPlugin {
 
     @Override
     void apply(Project project) {
-        if (!project.plugins.hasPlugin('maven-publish'))
-            project.plugins.apply('maven-publish')
-        if (!project.plugins.hasPlugin('java-gradle-plugin'))
-            project.plugins.apply('java-gradle-plugin')
-        if (!project.plugins.hasPlugin('com.gradle.plugin-publish'))
-            project.plugins.apply('com.gradle.plugin-publish')
+        project.plugins.apply('java-gradle-plugin')
+        project.plugins.apply('com.gradle.plugin-publish')
 
         project.gradlePlugin.automatedPublishing false
 
-        project.javadoc {
-            options {
-                encoding 'UTF-8'
-                charSet 'UTF-8'
-                author true
-                version true
-            }
-        }
-
-        project.task('sourcesJar', type: Jar, dependsOn: project.compileJava) {
-            classifier = 'sources'
-            from project.sourceSets.main.allSource
-        }
-
-        if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
-            if (!project.plugins.hasPlugin('org.jetbrains.dokka'))
-                project.plugins.apply('org.jetbrains.dokka')
-
-            project.task('dokkaJavadoc', type: DokkaTask) {
-                outputFormat = "javadoc"
-                outputDirectory = "$project.buildDir/dokkaJavadoc"
-            }
-
-            project.task('javadocJar', type: Jar) {
-                classifier = 'javadoc'
-                from project.dokkaJavadoc
-            }
-        } else if (project.plugins.hasPlugin('groovy')) {
-            project.task('javadocJar', type: Jar) {
-                classifier = 'javadoc'
-                from project.groovydoc
-            }
-        } else {
-            project.task('javadocJar', type: Jar) {
-                classifier = 'javadoc'
-                from project.javadoc
-            }
-        }
-
-        project.artifacts {
-            archives project.javadocJar, project.sourcesJar
-        }
-
-        project.extensions.create('publish', PublishExtension)
         project.afterEvaluate {
-            if (!project.publish.projectUrl)
-                throw new RuntimeException("未设置项目URL:\n" +
-                        "publish {\n" +
-                        "    projectUrl = \"https://...\"\n" +
-                        "    vcsUrl = \"https://...\"\n" +
-                        "}")
-            if (!project.publish.vcsUrl)
-                throw new RuntimeException("未设置项目vcsUrl" +
-                        "publish {\n" +
-                        "    projectUrl = \"https://...\"\n" +
-                        "    vcsUrl = \"https://...\"\n" +
-                        "}")
-            project.publishing {
-                publications {
-                    mavenJava(MavenPublication) {
-                        if (project.plugins.hasPlugin('war')) {
-                            from project.components.web
-                        } else {
-                            from project.components.java
-                        }
+            if (project.plugins.hasPlugin('org.jetbrains.kotlin.jvm')) {
+                if (!project.plugins.hasPlugin('org.jetbrains.dokka'))
+                    project.plugins.apply('org.jetbrains.dokka')
 
-                        artifact(project.sourcesJar) {
-                            classifier 'sources'
-                        }
+                project.task('dokkaJavadoc', type: DokkaTask) {
+                    outputFormat = "javadoc"
+                    outputDirectory = "$project.buildDir/dokkaJavadoc"
+                }
 
-                        artifact(project.javadocJar) {
-                            classifier 'javadoc'
-                        }
-
-                        pom.withXml {
-                            Node root = asNode()
-
-                            //compile
-                            root.dependencies.'*'.findAll() {
-                                it.scope.text() == 'runtime' && project.configurations.compile.dependencies.find { dep ->
-                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                                }
-                            }.each {
-                                it.scope*.value = 'compile'
-                            }
-                            //provided
-                            root.dependencies.'*'.findAll() {
-                                it.scope.text() == 'runtime' && project.configurations.provided.dependencies.find { dep ->
-                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                                }
-                            }.each {
-                                it.scope*.value = 'provided'
-                            }
-                            //optional
-                            root.dependencies.'*'.findAll() {
-                                it.scope.text() == 'runtime' && project.configurations.optional.dependencies.find { dep ->
-                                    dep.group == it.groupId.text() && dep.name == it.artifactId.text()
-                                }
-                            }.each {
-                                it.scope*.value = 'compile'
-                                it.appendNode('optional', 'true')
-                            }
-
-                            root.children().last() + {
-                                resolveStrategy = DELEGATE_FIRST
-                                name "${project.name}"
-                                packaging 'jar'
-                                description "${project.name}"
-                                url project.publish.projectUrl
-                                licenses {
-                                    license {
-                                        name 'The Apache Software License, Version 2.0'
-                                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                        distribution 'repo'
-                                    }
-                                }
-                                developers {
-                                    developer {
-                                        id 'bestwu'
-                                        name 'Peter Wu'
-                                        email 'piterwu@outlook.com'
-                                    }
-                                }
-                                scm {
-                                    url project.publish.vcsUrl
-                                    connection "scm:git:$project.publish.vcsUrl"
-                                    developerConnection "scm:git:$project.publish.vcsUrl"
-                                }
-                            }
-                        }
-                    }
+                project.task('javadocJar', type: Jar) {
+                    classifier = 'javadoc'
+                    from project.dokkaJavadoc
+                }
+            } else if (project.plugins.hasPlugin('groovy')) {
+                project.task('javadocJar', type: Jar) {
+                    classifier = 'javadoc'
+                    from project.groovydoc
+                }
+            } else {
+                project.task('javadocJar', type: Jar) {
+                    classifier = 'javadoc'
+                    from project.javadoc
                 }
             }
 
+            def projectUrl = project.findProperty('projectUrl')
+            def projectVcsUrl = project.findProperty('vcsUrl')
+            project.findProperty('gradlePlugin.plugins').toString().tokenize(',').each { plugin ->
+                project.gradlePlugin.plugins.create(plugin) {
+                    id = project.findProperty("gradlePlugin.plugins.${plugin}.id")
+                    implementationClass = project.findProperty("gradlePlugin.plugins.${plugin}.implementationClass")
+                }
+
+                project.pluginBundle.plugins.create(plugin) {
+                    id = project.findProperty("pluginBundle.plugins.${plugin}.id")
+                    displayName = plugin
+                }
+            }
             def gradlePlugins = project.gradlePlugin.plugins
+            configPublish(project, gradlePlugins.names.toArray())
             gradlePlugins.forEach({ declaration ->
                 def publication = project.publishing.publications.create(declaration.name, MavenPublication.class)
                 publication.groupId declaration.id
@@ -171,7 +72,7 @@ class PluginPublishPlugin implements Plugin<Project> {
                         resolveStrategy = DELEGATE_FIRST
                         name "${project.name}"
                         description "${project.name}"
-                        url project.publish.projectUrl
+                        url projectUrl
 
                         dependencies {
                             dependency {
@@ -182,92 +83,35 @@ class PluginPublishPlugin implements Plugin<Project> {
                         }
                         licenses {
                             license {
-                                name 'The Apache Software License, Version 2.0'
-                                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                                distribution 'repo'
+                                name project.findProperty('license.name')
+                                url project.findProperty('license.url')
+                                distribution project.findProperty('license.distribution')
                             }
                         }
                         developers {
                             developer {
-                                id 'bestwu'
-                                name 'Peter Wu'
-                                email 'piterwu@outlook.com'
+                                id project.findProperty('developer.id')
+                                name project.findProperty('developer.name')
+                                email project.findProperty('developer.email')
                             }
                         }
                         scm {
-                            url project.publish.vcsUrl
-                            connection "scm:git:$project.publish.vcsUrl"
-                            developerConnection "scm:git:$project.publish.vcsUrl"
+                            url projectVcsUrl
+                            connection "scm:git:$projectVcsUrl"
+                            developerConnection "scm:git:$projectVcsUrl"
                         }
                     }
                 }
             })
-
-            if (project.plugins.hasPlugin('com.jfrog.artifactory')) {
-                //发布到snapshot
-                def publicationNames = []
-                publicationNames.add('mavenJava')
-                publicationNames.addAll(gradlePlugins.names)
-                project.artifactory {
-                    contextUrl = project.findProperty('snapshotContextUrl')
-                    publish {
-                        repository {
-                            repoKey = project.findProperty('snapshotRepoKey')
-                            username = project.findProperty('snapshotUsername')
-                            password = project.findProperty('snapshotPassword')
-                            maven = true
-                        }
-                        defaults {
-                            publications publicationNames.toArray()
-                            publishArtifacts = true
-                        }
-                    }
-                }
-                project.artifactoryPublish.dependsOn project.publishToMavenLocal
-            }
-            if (project.plugins.hasPlugin('com.jfrog.bintray')) {
-                //发布到私有仓库并同步中央仓库及mavenCentral
-                def publicationNames = []
-                publicationNames.add('mavenJava')
-                publicationNames.addAll(gradlePlugins.names)
-                project.bintray {
-                    user = project.findProperty('bintrayUsername')
-                    key = project.findProperty('bintrayApiKey')
-                    publications = publicationNames.toArray()
-
-                    publish = true
-                    //    override = true
-                    pkg {
-                        repo = 'maven'
-                        name = "${project.name}"
-                        desc = "${project.name}"
-                        websiteUrl = project.publish.projectUrl
-                        vcsUrl = project.publish.vcsUrl
-                        licenses = ['Apache-2.0']
-                        labels = ["${project.name}"]
-
-                        version {
-                            desc = "${project.name} ${project.version}"
-                            mavenCentralSync {
-                                sync = true
-                                user = project.findProperty('mavenCentralUsername')
-                                password = project.findProperty('mavenCentralPassword')
-                                close = '1'
-                            }
-                        }
-                    }
-                }
-                project.bintrayUpload.dependsOn project.publishToMavenLocal
-
-                //发布到gradle plugins
-                String name = "${project.name}"
-                project.pluginBundle {
-                    website = project.publish.projectUrl
-                    vcsUrl = project.publish.vcsUrl
-                    description = "${name}"
-                    tags = [name]
-                }
+            //发布到gradle plugins
+            String name = "${project.name}"
+            project.pluginBundle {
+                website = projectUrl
+                vcsUrl = projectVcsUrl
+                description = "${name}"
+                tags = [name]
             }
         }
     }
+
 }
