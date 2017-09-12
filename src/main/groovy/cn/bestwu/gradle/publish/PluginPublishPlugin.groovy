@@ -51,13 +51,15 @@ class PluginPublishPlugin extends AbstractPlugin {
             def projectUrl = project.findProperty('projectUrl')
             def projectVcsUrl = project.findProperty('vcsUrl')
             project.findProperty('gradlePlugin.plugins').toString().tokenize(',').each { plugin ->
+                def pluginId = project.findProperty("gradlePlugin.plugins.${plugin}.id")
+
                 project.gradlePlugin.plugins.create(plugin) {
-                    id = project.findProperty("gradlePlugin.plugins.${plugin}.id")
+                    id = pluginId
                     implementationClass = project.findProperty("gradlePlugin.plugins.${plugin}.implementationClass")
                 }
 
                 project.pluginBundle.plugins.create(plugin) {
-                    id = project.findProperty("pluginBundle.plugins.${plugin}.id")
+                    id = pluginId
                     displayName = plugin
                 }
             }
