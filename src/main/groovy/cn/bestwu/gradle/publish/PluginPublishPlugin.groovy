@@ -50,19 +50,23 @@ class PluginPublishPlugin extends AbstractPlugin {
 
             def projectUrl = project.findProperty('projectUrl')
             def projectVcsUrl = project.findProperty('vcsUrl')
-            project.findProperty('gradlePlugin.plugins').toString().tokenize(',').each { plugin ->
-                def pluginId = project.findProperty("gradlePlugin.plugins.${plugin}.id")
+            def gradlePlugin = project.findProperty('gradlePlugin.plugins')
+            if(gradlePlugin!=null){
+                gradlePlugin.toString().tokenize(',').each { plugin ->
+                    def pluginId = project.findProperty("gradlePlugin.plugins.${plugin}.id")
 
-                project.gradlePlugin.plugins.create(plugin) {
-                    id = pluginId
-                    implementationClass = project.findProperty("gradlePlugin.plugins.${plugin}.implementationClass")
-                }
+                    project.gradlePlugin.plugins.create(plugin) {
+                        id = pluginId
+                        implementationClass = project.findProperty("gradlePlugin.plugins.${plugin}.implementationClass")
+                    }
 
-                project.pluginBundle.plugins.create(plugin) {
-                    id = pluginId
-                    displayName = plugin
+                    project.pluginBundle.plugins.create(plugin) {
+                        id = pluginId
+                        displayName = plugin
+                    }
                 }
             }
+
             def gradlePlugins = project.gradlePlugin.plugins
             configPublish(project, gradlePlugins.names.toArray())
             gradlePlugins.forEach({ declaration ->

@@ -1,10 +1,10 @@
 plugins {
     id 'groovy'
-    id 'cn.bestwu.plugin-publish' version '0.0.9'
+    id 'cn.bestwu.plugin-publish' version '0.0.10'
 }
 
 group 'cn.bestwu.gradle'
-version '0.0.9'
+version '0.0.10'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
