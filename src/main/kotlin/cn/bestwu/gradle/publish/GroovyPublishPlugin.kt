@@ -16,11 +16,11 @@ class GroovyPublishPlugin : AbstractPlugin() {
      * {@inheritDoc}
      */
     override fun apply(project: Project) {
-        sourcesJar(project)
+        beforeConfigigure(project)
 
         project.afterEvaluate {
             project.tasks.withType(Groovydoc::class.java){
-                it.source(project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets.findByName("main").allSource)
+                it.source(project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets.getByName("main").allSource)
             }
             project.tasks.create("javadocJar", Jar::class.java) {
                 it.classifier = "javadoc"

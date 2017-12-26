@@ -21,7 +21,7 @@ class PluginPublishPlugin : AbstractPlugin() {
      * {@inheritDoc}
      */
     override fun apply(project: Project) {
-        sourcesJar(project)
+        beforeConfigigure(project)
 
         project.plugins.apply("java-gradle-plugin")
         project.plugins.apply("com.gradle.plugin-publish")
@@ -32,97 +32,14 @@ class PluginPublishPlugin : AbstractPlugin() {
 
         project.afterEvaluate {
 
-            when {
-                project.plugins.hasPlugin("org.jetbrains.kotlin.jvm") -> {
-                    if (!project.plugins.hasPlugin("org.jetbrains.dokka"))
-                        project.plugins.apply("org.jetbrains.dokka")
-
-                    project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
-                        it.outputFormat = "javadoc"
-                        it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
-                    }
-
-                    project.tasks.create("javadocJar", Jar::class.java) {
-                        it.classifier = "javadoc"
-                        it.from(project.tasks.findByName("dokkaJavadoc").outputs)
-                    }
-                }
-                project.plugins.hasPlugin("groovy") -> project.tasks.create("javadocJar", Jar::class.java) {
-                    it.classifier = "javadoc"
-                    it.from(project.tasks.findByName("groovydoc").outputs)
-                }
-                else -> project.tasks.create("javadocJar", Jar::class.java) {
-                    it.classifier = "javadoc"
-                    it.from(project.tasks.findByName("javadoc").outputs)
-                }
-            }
+            configureDoc(project)
 
             val projectUrl = project.findProperty("projectUrl") as String?
             val projectVcsUrl = project.findProperty("vcsUrl") as String?
-            val gradlePlugin = project.findProperty("gradlePlugin.plugins") as String?
-            gradlePlugin?.split(",")?.forEach { plugin ->
-                val pluginId = project.findProperty("gradlePlugin.plugins.$plugin.id") as String
-
-                project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
-                    it.plugins.create(plugin) {
-                        it.id = pluginId
-                        it.implementationClass = project.findProperty("gradlePlugin.plugins.$plugin.implementationClass") as String
-                    }
-                }
-                project.extensions.configure(PluginBundleExtension::class.java) {
-                    it.plugins.create(plugin) {
-                        it.id = pluginId
-                        it.displayName = plugin
-                    }
-                }
-            }
+            configureGradlePlugins(project)
 
 
-            project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
-                with(it.plugins) {
-                    configPublish(project, names.toTypedArray())
-                    forEach { plugin ->
-                        project.extensions.configure(PublishingExtension::class.java) { p ->
-                            val publication = p.publications.create(plugin.name, MavenPublication::class.java)
-                            publication.groupId = plugin.id
-                            publication.artifactId = plugin.id + PLUGIN_MARKER_SUFFIX
-                            publication.pom.withXml { po ->
-                                po.asNode().apply {
-
-                                    appendNode("name", project.name)
-                                    appendNode("description", project.name)
-                                    if (!projectUrl.isNullOrBlank())
-                                        appendNode("url", projectUrl)
-
-                                    val dependency = appendNode("dependencies").appendNode("dependency")
-                                    dependency.appendNode("groupId", project.group)
-                                    dependency.appendNode("artifactId", project.name)
-                                    dependency.appendNode("version", project.version)
-
-                                    val license = appendNode("licenses").appendNode("license")
-                                    license.appendNode("name", project.findProperty("license.name"))
-                                    license.appendNode("url", project.findProperty("license.url"))
-                                    license.appendNode("distribution", project.findProperty("license.distribution"))
-
-                                    val developer = appendNode("developers").appendNode("developer")
-                                    developer.appendNode("id", project.findProperty("developer.id"))
-                                    developer.appendNode("name", project.findProperty("developer.name"))
-                                    developer.appendNode("email", project.findProperty("developer.email"))
-
-                                    if (projectVcsUrl != null && projectVcsUrl.isNotBlank()) {
-                                        val scm = appendNode("scm")
-                                        scm.appendNode("url", projectVcsUrl)
-                                        val tag = if (projectVcsUrl.contains("git")) "git" else if (projectVcsUrl.contains("svn")) "svn" else projectVcsUrl
-                                        scm.appendNode("connection", "scm:$tag:$projectVcsUrl")
-                                        scm.appendNode("developerConnection", "scm:$tag:$projectVcsUrl")
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                }
-            }
+            configurePluginsPublication(project, projectUrl, projectVcsUrl)
 
             //发布到gradle plugins
             val name = project.name
@@ -133,6 +50,89 @@ class PluginPublishPlugin : AbstractPlugin() {
                     it.vcsUrl = projectVcsUrl
                 it.description = name
                 it.tags = setOf(name)
+            }
+        }
+    }
+
+    /**
+     * 配置每个插件的发布信息
+     */
+    private fun PluginPublishPlugin.configurePluginsPublication(project: Project, projectUrl: String?, projectVcsUrl: String?) {
+        project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
+            with(it.plugins) {
+                configPublish(project, names.toTypedArray())
+                forEach { plugin ->
+                    project.extensions.configure(PublishingExtension::class.java) { p ->
+                        val publication = p.publications.create(plugin.name, MavenPublication::class.java)
+                        publication.groupId = plugin.id
+                        publication.artifactId = plugin.id + PLUGIN_MARKER_SUFFIX
+                        publication.pom.withXml { po ->
+                            po.asNode().apply {
+                                val dependency = appendNode("dependencies").appendNode("dependency")
+                                dependency.appendNode("groupId", project.group)
+                                dependency.appendNode("artifactId", project.name)
+                                dependency.appendNode("version", project.version)
+
+                                configurePomXml(project, projectUrl, projectVcsUrl)
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 配置文档生成
+     */
+    private fun configureDoc(project: Project) {
+        when {
+            project.plugins.hasPlugin("org.jetbrains.kotlin.jvm") -> {
+                if (!project.plugins.hasPlugin("org.jetbrains.dokka"))
+                    project.plugins.apply("org.jetbrains.dokka")
+
+                project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
+                    it.outputFormat = "javadoc"
+                    it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
+                }
+
+                project.tasks.create("javadocJar", Jar::class.java) {
+                    it.classifier = "javadoc"
+                    it.from(project.tasks.getByName("dokkaJavadoc").outputs)
+                }
+            }
+            project.plugins.hasPlugin("groovy") -> project.tasks.create("javadocJar", Jar::class.java) {
+                it.classifier = "javadoc"
+                it.from(project.tasks.getByName("groovydoc").outputs)
+            }
+            else -> project.tasks.create("javadocJar", Jar::class.java) {
+                it.classifier = "javadoc"
+                it.from(project.tasks.getByName("javadoc").outputs)
+            }
+        }
+    }
+
+
+    /**
+     * 配置GradlePlugin
+     */
+    private fun configureGradlePlugins(project: Project) {
+        val gradlePlugin = project.findProperty("gradlePlugin.plugins") as String?
+        gradlePlugin?.split(",")?.forEach { plugin ->
+            val pluginId = project.findProperty("gradlePlugin.plugins.$plugin.id") as String
+
+            project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
+                it.plugins.create(plugin) {
+                    it.id = pluginId
+                    it.implementationClass = project.findProperty("gradlePlugin.plugins.$plugin.implementationClass") as String
+                }
+            }
+            project.extensions.configure(PluginBundleExtension::class.java) {
+                it.plugins.create(plugin) {
+                    it.id = pluginId
+                    it.displayName = plugin
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 
+import org.gradle.api.DefaultTask
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 import java.io.File
@@ -15,9 +16,9 @@ class ClosureTest {
     fun test() {
         val project = ProjectBuilder.builder().withProjectDir(File(ClosureTest::class.java.getResource("").path.substringBefore("/build/"))).build()
 //        project.plugins.apply("java")
-//        project.plugins.apply("cn.bestwu.plugin-publish")
+        project.plugins.apply("cn.bestwu.kotlin-publish")
 
-//        (project.tasks.findByName("publishToMavenLocal") as DefaultTask).execute()
+        (project.tasks.findByName("uploadArchives") as DefaultTask).execute()
 //        project.extensions.create("artifactory", ArtifactoryPluginConvention::class.java, project)
 //        project.extensions.configure(ArtifactoryPluginConvention::class.java) { artifactory ->
 //            with(artifactory) {

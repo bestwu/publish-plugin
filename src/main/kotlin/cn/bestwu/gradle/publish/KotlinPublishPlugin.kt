@@ -15,7 +15,7 @@ class KotlinPublishPlugin : AbstractPlugin() {
      * {@inheritDoc}
      */
     override fun apply(project: Project) {
-        sourcesJar(project)
+        beforeConfigigure(project)
 
         project.plugins.apply("org.jetbrains.dokka")
         project.afterEvaluate {

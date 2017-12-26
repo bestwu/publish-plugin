@@ -15,7 +15,7 @@ class PublishPlugin: AbstractPlugin() {
      * {@inheritDoc}
      */
     override fun apply(project: Project) {
-        sourcesJar(project)
+        beforeConfigigure(project)
 
         project.afterEvaluate {
             project.tasks.create("javadocJar", Jar::class.java) {

@@ -1,9 +1,9 @@
-pluginManagement {
-    repositories {
-        maven { url "$mavenLocal" }
-        gradlePluginPortal()
-    }
-}
+//pluginManagement {
+//    repositories {
+//        maven { url "$mavenLocal" }
+//        gradlePluginPortal()
+//    }
+//}
 
 //pluginRepositories {
 //    maven { url "$mavenLocal" }

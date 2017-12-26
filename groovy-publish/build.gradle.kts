@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "cn.bestwu.samples"
-version = "1.0"
+version = "1.0-SNAPSHOT"
 
 tasks.withType(JavaCompile::class.java) {
     sourceCompatibility = "1.7"
