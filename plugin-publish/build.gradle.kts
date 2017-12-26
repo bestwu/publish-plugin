@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version ("1.2.10")
-    id("cn.bestwu.plugin-publish") version "0.0.13"
+    id("cn.bestwu.plugin-publish") version "0.0.14"
 }
 
 group = "cn.bestwu.samples"

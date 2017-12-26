@@ -81,8 +81,8 @@ abstract class AbstractPlugin : Plugin<Project> {
 
         project.tasks.withType(Javadoc::class.java) {
             with(it.options as StandardJavadocDocletOptions) {
-                encoding = "UTF-8"
-                charSet = "UTF-8"
+                encoding = project.findProperty("project.encoding") as String??: "UTF-8"
+                charSet = project.findProperty("project.encoding") as String??: "UTF-8"
                 isAuthor = true
                 isVersion = true
             }

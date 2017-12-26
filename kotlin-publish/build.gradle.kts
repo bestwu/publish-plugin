@@ -2,7 +2,7 @@ import org.gradle.kotlin.dsl.*
 
 plugins {
     kotlin("jvm") version ("1.2.10")
-    id("cn.bestwu.kotlin-publish") version "0.0.13"
+    id("cn.bestwu.kotlin-publish") version "0.0.14"
 }
 group = "cn.bestwu.samples"
 version = "1.0-SNAPSHOT"

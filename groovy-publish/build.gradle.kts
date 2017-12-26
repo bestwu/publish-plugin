@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.version
 
 plugins {
     groovy
-    id("cn.bestwu.groovy-publish") version "0.0.13"
+    id("cn.bestwu.groovy-publish") version "0.0.14"
 }
 
 group = "cn.bestwu.samples"
