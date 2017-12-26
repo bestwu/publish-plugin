@@ -33,8 +33,11 @@ import java.net.URI
 /**
  * 获取单一节点
  */
-fun Node.getAt(name: String): Node {
-    return (get(name) as NodeList)[0] as Node
+fun Node.getAt(name: String): Node? {
+    val nodeList = get(name) as NodeList
+    return if (nodeList.size > 0)
+        nodeList[0] as Node
+    else null
 }
 
 /**
@@ -80,8 +83,8 @@ abstract class AbstractPlugin : Plugin<Project> {
 
         project.tasks.withType(Javadoc::class.java) {
             with(it.options as StandardJavadocDocletOptions) {
-                encoding = project.findProperty("project.encoding") as String??: "UTF-8"
-                charSet = project.findProperty("project.encoding") as String??: "UTF-8"
+                encoding = project.findProperty("project.encoding") as String? ?: "UTF-8"
+                charSet = project.findProperty("project.encoding") as String? ?: "UTF-8"
                 isAuthor = true
                 isVersion = true
             }
@@ -278,18 +281,18 @@ abstract class AbstractPlugin : Plugin<Project> {
      * 设置依赖的scope
      */
     private fun setDependencyScope(root: Node, project: Project, scope: String) {
-        root.getAt("dependencies").children().filter {
+        root.getAt("dependencies")?.children()?.filter {
             val node = it as Node
-            node.getAt("scope").text() == "runtime" && project.configurations.getAt(scope).dependencies.any { dep ->
-                dep.group == node.getAt("groupId").text() && dep.name == node.getAt("artifactId").text()
+            node.getAt("scope")?.text() == "runtime" && project.configurations.getAt(scope).dependencies.any { dep ->
+                dep.group == node.getAt("groupId")?.text() && dep.name == node.getAt("artifactId")?.text()
             }
-        }.forEach {
+        }?.forEach {
             val node = it as Node
             if (scope == "optional") {
-                node.getAt("scope").setValue("compile")
+                node.getAt("scope")?.setValue("compile")
                 node.appendNode("optional", "true")
             } else
-                node.getAt("scope").setValue(scope)
+                node.getAt("scope")?.setValue(scope)
         }
     }
 
