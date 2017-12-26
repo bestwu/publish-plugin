@@ -327,7 +327,7 @@ abstract class AbstractPlugin : Plugin<Project> {
      */
     protected fun Node.configurePomXml(project: Project, projectUrl: String?, projectVcsUrl: String?) {
         appendNode("name", project.name)
-        appendNode("description", project.name)
+        appendNode("description", if (project.description.isNotBlank()) project.description else project.name)
         if (!projectUrl.isNullOrBlank())
             appendNode("url", projectUrl)
 
