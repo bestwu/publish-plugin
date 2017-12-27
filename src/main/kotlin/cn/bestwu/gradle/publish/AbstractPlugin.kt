@@ -219,13 +219,13 @@ abstract class AbstractPlugin : Plugin<Project> {
      */
     private fun configureArtifactory(project: Project, publicationNames: MutableSet<String>) {
         val conv = project.convention.plugins.get("artifactory") as ArtifactoryPluginConvention
-        conv.setContextUrl(project.findProperty("snapshotContextUrl"))
+        conv.setContextUrl(project.findProperty("artifactoryContextUrl"))
         conv.publish(closureOf<PublisherConfig> {
 
             repository(closureOf<DoubleDelegateWrapper> {
-                setProperty("repoKey", project.findProperty("snapshotRepoKey"))
-                setProperty("username", project.findProperty("snapshotUsername"))
-                setProperty("password", project.findProperty("snapshotPassword"))
+                setProperty("repoKey", project.findProperty("artifactoryRepoKey"))
+                setProperty("username", project.findProperty("artifactoryUsername"))
+                setProperty("password", project.findProperty("artifactoryPassword"))
                 setProperty("maven", true)
             })
             defaults(closureOf<ArtifactoryTask> {
