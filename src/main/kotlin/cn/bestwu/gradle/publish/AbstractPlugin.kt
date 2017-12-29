@@ -283,9 +283,9 @@ abstract class AbstractPlugin : Plugin<Project> {
     private fun setDependencyScope(root: Node, project: Project, scope: String) {
         root.getAt("dependencies")?.children()?.filter {
             val node = it as Node
-            node.getAt("scope")?.text() == "runtime" && project.configurations.getAt(scope).dependencies.any { dep ->
+            node.getAt("scope")?.text() == "runtime" && project.configurations.findByName(scope)?.dependencies?.any { dep ->
                 dep.group == node.getAt("groupId")?.text() && dep.name == node.getAt("artifactId")?.text()
-            }
+            }?:false
         }?.forEach {
             val node = it as Node
             if (scope == "optional") {
