@@ -285,7 +285,7 @@ abstract class AbstractPlugin : Plugin<Project> {
             val node = it as Node
             node.getAt("scope")?.text() == "runtime" && project.configurations.findByName(scope)?.dependencies?.any { dep ->
                 dep.group == node.getAt("groupId")?.text() && dep.name == node.getAt("artifactId")?.text()
-            }?:false
+            } ?: false
         }?.forEach {
             val node = it as Node
             if (scope == "optional") {
@@ -327,7 +327,7 @@ abstract class AbstractPlugin : Plugin<Project> {
      */
     protected fun Node.configurePomXml(project: Project, projectUrl: String?, projectVcsUrl: String?) {
         appendNode("name", project.name)
-        appendNode("description", if (project.description.isNotBlank()) project.description else project.name)
+        appendNode("description", if (!project.description.isNullOrBlank()) project.description else project.name)
         if (!projectUrl.isNullOrBlank())
             appendNode("url", projectUrl)
 

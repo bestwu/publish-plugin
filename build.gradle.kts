@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.1.61"
-    id("cn.bestwu.plugin-publish") version "0.0.12"
+    id("cn.bestwu.plugin-publish") version "0.0.15"
 }
 
 group = "cn.bestwu.gradle"

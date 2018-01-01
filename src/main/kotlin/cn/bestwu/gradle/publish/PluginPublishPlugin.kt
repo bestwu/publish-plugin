@@ -6,7 +6,6 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
-import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver.PLUGIN_MARKER_SUFFIX
 import org.jetbrains.dokka.gradle.DokkaTask
 
 
@@ -65,7 +64,7 @@ class PluginPublishPlugin : AbstractPlugin() {
                     project.extensions.configure(PublishingExtension::class.java) { p ->
                         val publication = p.publications.create(plugin.name, MavenPublication::class.java)
                         publication.groupId = plugin.id
-                        publication.artifactId = plugin.id + PLUGIN_MARKER_SUFFIX
+                        publication.artifactId = plugin.id + ".gradle.plugin"
                         publication.pom.withXml { po ->
                             po.asNode().apply {
                                 val dependency = appendNode("dependencies").appendNode("dependency")
