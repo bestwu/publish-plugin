@@ -99,6 +99,8 @@ abstract class AbstractPlugin : Plugin<Project> {
         publicationNames.add("mavenJava")
         publicationNames.addAll(publicationName)
 
+        project.tasks.getByName("publish").dependsOn("publishToMavenLocal")
+
         if (project.plugins.hasPlugin("com.jfrog.artifactory"))
             configureArtifactory(project, publicationNames)
 

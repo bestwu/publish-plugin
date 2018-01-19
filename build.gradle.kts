@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,7 +7,7 @@ plugins {
 }
 
 group = "cn.bestwu.gradle"
-version = "0.0.15"
+version = "0.0.16"
 
 tasks.withType(JavaCompile::class.java) {
     sourceCompatibility = "1.7"
