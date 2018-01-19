@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "cn.bestwu.gradle"
-version = "0.0.16"
+version = "0.0.17"
 
 tasks.withType(JavaCompile::class.java) {
     sourceCompatibility = "1.7"
