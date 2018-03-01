@@ -254,7 +254,7 @@ abstract class AbstractPlugin : Plugin<Project> {
 
                 with(pkg) {
                     repo = "maven"
-                    name = project.name
+                    name = project.findProperty("bintrayPackage") as? String ?: project.name
                     desc = project.name
                     if (!projectUrl.isNullOrBlank()) {
                         websiteUrl = projectUrl
@@ -289,13 +289,13 @@ abstract class AbstractPlugin : Plugin<Project> {
                 dep.group == node.getAt("groupId")?.text() && dep.name == node.getAt("artifactId")?.text()
             } ?: false
         }?.forEach {
-            val node = it as Node
-            if (scope == "optional") {
-                node.getAt("scope")?.setValue("compile")
-                node.appendNode("optional", "true")
-            } else
-                node.getAt("scope")?.setValue(scope)
-        }
+                    val node = it as Node
+                    if (scope == "optional") {
+                        node.getAt("scope")?.setValue("compile")
+                        node.appendNode("optional", "true")
+                    } else
+                        node.getAt("scope")?.setValue(scope)
+                }
     }
 
     /**
