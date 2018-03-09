@@ -1,6 +1,5 @@
 /**
  * @author Peter Wu
- * @since
  */
 public class HelloWordJava {
 

@@ -6,6 +6,7 @@
 //}
 
 pluginRepositories {
-    maven { url "$mavenLocal" }
+    maven { url "$mirrorRepo" }
+//    maven { url "$mavenLocal" }
     gradlePluginPortal()
 }
