@@ -28,7 +28,15 @@ class PluginPublishPlugin : AbstractPlugin() {
         project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
             it.isAutomatedPublishing = false
         }
+        if (project.plugins.hasPlugin("org.jetbrains.kotlin.jvm")) {
+            if (!project.plugins.hasPlugin("org.jetbrains.dokka"))
+                project.plugins.apply("org.jetbrains.dokka")
 
+            project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
+                it.outputFormat = "javadoc"
+                it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
+            }
+        }
         project.afterEvaluate {
 
             configureDoc(project)
@@ -88,14 +96,6 @@ class PluginPublishPlugin : AbstractPlugin() {
     private fun configureDoc(project: Project) {
         when {
             project.plugins.hasPlugin("org.jetbrains.kotlin.jvm") -> {
-                if (!project.plugins.hasPlugin("org.jetbrains.dokka"))
-                    project.plugins.apply("org.jetbrains.dokka")
-
-                project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
-                    it.outputFormat = "javadoc"
-                    it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
-                }
-
                 project.tasks.create("javadocJar", Jar::class.java) {
                     it.classifier = "javadoc"
                     it.from(project.tasks.getByName("dokkaJavadoc").outputs)

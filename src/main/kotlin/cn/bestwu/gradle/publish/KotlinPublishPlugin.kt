@@ -2,7 +2,9 @@ package cn.bestwu.gradle.publish
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
+import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.dokka.gradle.PackageOptions
 
 /**
  *
@@ -18,13 +20,11 @@ class KotlinPublishPlugin : AbstractPlugin() {
         beforeConfigigure(project)
 
         project.plugins.apply("org.jetbrains.dokka")
+        project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
+            it.outputFormat = "javadoc"
+            it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
+        }
         project.afterEvaluate {
-
-            project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
-                it.outputFormat = "javadoc"
-                it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
-            }
-
             project.tasks.create("javadocJar", Jar::class.java) {
                 it.classifier = "javadoc"
                 it.from(project.tasks.getByName("dokkaJavadoc").outputs)
