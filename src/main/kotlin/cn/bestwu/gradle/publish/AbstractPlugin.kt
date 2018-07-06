@@ -220,7 +220,7 @@ abstract class AbstractPlugin : Plugin<Project> {
      * 发布到artifactory仓库
      */
     private fun configureArtifactory(project: Project, publicationNames: MutableSet<String>) {
-        val conv = project.convention.plugins.get("artifactory") as ArtifactoryPluginConvention
+        val conv = project.convention.plugins["artifactory"] as ArtifactoryPluginConvention
         conv.setContextUrl(project.findProperty("artifactoryContextUrl"))
         conv.publish(closureOf<PublisherConfig> {
 

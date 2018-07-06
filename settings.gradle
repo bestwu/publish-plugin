@@ -1,12 +1,1 @@
-//pluginManagement {
-//    repositories {
-//        maven { url "$mavenLocal" }
-//        gradlePluginPortal()
-//    }
-//}
-
-//pluginRepositories {
-//    maven { url "$mavenLocal" }
-//    gradlePluginPortal()
-//}
-
+enableFeaturePreview('STABLE_PUBLISHING')
