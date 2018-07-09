@@ -6,5 +6,5 @@ repositories {
 
 dependencies {
 //    compile("cn.bestwu.gradle:publish-plugin:0.0.18")
-    compile("cn.bestwu.gradle:publish-plugin:0.0.20")
+    compile("cn.bestwu.gradle:publish-plugin:0.0.24")
 }

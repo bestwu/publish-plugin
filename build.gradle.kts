@@ -1,4 +1,5 @@
 import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val kotlinVersion = "1.2.51"
@@ -9,7 +10,7 @@ plugins {
 }
 
 group = "cn.bestwu.gradle"
-version = "0.0.23"
+version = "0.0.24"
 
 repositories {
     jcenter()
@@ -26,4 +27,9 @@ dependencies {
         exclude(module = "groovy-all")
     }
     testCompile("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
+}
+tasks {
+    "dokkaJavadoc"(DokkaTask::class) {
+        noStdlibLink = true
+    }
 }
