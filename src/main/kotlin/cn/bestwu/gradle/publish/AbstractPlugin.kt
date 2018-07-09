@@ -83,8 +83,8 @@ abstract class AbstractPlugin : Plugin<Project> {
 
         project.tasks.withType(Javadoc::class.java) {
             with(it.options as StandardJavadocDocletOptions) {
-                encoding = project.findProperty("project.encoding") as String? ?: "UTF-8"
-                charSet = project.findProperty("project.encoding") as String? ?: "UTF-8"
+                encoding = project.findProperty("project.encoding") as? String?: "UTF-8"
+                charSet = project.findProperty("project.encoding") as? String?: "UTF-8"
                 isAuthor = true
                 isVersion = true
             }
@@ -245,8 +245,8 @@ abstract class AbstractPlugin : Plugin<Project> {
     private fun configureBintray(project: Project, publicationNames: MutableSet<String>, projectUrl: String?, projectVcsUrl: String?) {
         project.extensions.configure(BintrayExtension::class.java) { bintray ->
             with(bintray) {
-                user = project.findProperty("bintrayUsername") as String
-                key = project.findProperty("bintrayApiKey") as String
+                user = project.findProperty("bintrayUsername") as? String
+                key = project.findProperty("bintrayApiKey") as? String
                 setPublications(*publicationNames.toTypedArray())
 
                 publish = true
@@ -261,15 +261,15 @@ abstract class AbstractPlugin : Plugin<Project> {
                     }
                     if (!projectVcsUrl.isNullOrBlank())
                         vcsUrl = projectVcsUrl
-                    setLicenses(project.findProperty("license.shortName") as String)
+                    setLicenses(project.findProperty("license.shortName") as? String)
                     setLabels(project.name)
 
                     with(version) {
                         desc = "${project.name} ${project.version}"
                         with(mavenCentralSync) {
-                            sync = true
-                            user = project.findProperty("mavenCentralUsername") as String
-                            password = project.findProperty("mavenCentralPassword") as String
+                            sync = (project.findProperty("mavenCentralSync") as? String)?.toBoolean() ?: false
+                            user = project.findProperty("mavenCentralUsername") as? String
+                            password = project.findProperty("mavenCentralPassword") as? String
                             close = "1"
                         }
                     }
@@ -289,13 +289,13 @@ abstract class AbstractPlugin : Plugin<Project> {
                 dep.group == node.getAt("groupId")?.text() && dep.name == node.getAt("artifactId")?.text()
             } ?: false
         }?.forEach {
-                    val node = it as Node
-                    if (scope == "optional") {
-                        node.getAt("scope")?.setValue("compile")
-                        node.appendNode("optional", "true")
-                    } else
-                        node.getAt("scope")?.setValue(scope)
-                }
+            val node = it as Node
+            if (scope == "optional") {
+                node.getAt("scope")?.setValue("compile")
+                node.appendNode("optional", "true")
+            } else
+                node.getAt("scope")?.setValue(scope)
+        }
     }
 
     /**
