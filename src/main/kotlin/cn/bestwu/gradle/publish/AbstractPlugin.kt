@@ -81,10 +81,14 @@ abstract class AbstractPlugin : Plugin<Project> {
      */
     protected fun configPublish(project: Project, publicationName: Array<String> = arrayOf()) {
 
+        if (project.group.toString().isBlank()) {
+            return
+        }
+
         project.tasks.withType(Javadoc::class.java) {
             with(it.options as StandardJavadocDocletOptions) {
-                encoding = project.findProperty("project.encoding") as? String?: "UTF-8"
-                charSet = project.findProperty("project.encoding") as? String?: "UTF-8"
+                encoding = project.findProperty("project.encoding") as? String ?: "UTF-8"
+                charSet = project.findProperty("project.encoding") as? String ?: "UTF-8"
                 isAuthor = true
                 isVersion = true
             }

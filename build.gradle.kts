@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "cn.bestwu.gradle"
-version = "0.0.24"
+version = "0.0.25"
 
 repositories {
     jcenter()
