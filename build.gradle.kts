@@ -2,10 +2,10 @@ import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val kotlinVersion = "1.2.51"
+val kotlinVersion = "1.2.61"
 
 plugins {
-    kotlin("jvm") version "1.2.51"
+    kotlin("jvm") version "1.2.61"
     id("cn.bestwu.plugin-publish")
 }
 
@@ -19,7 +19,7 @@ repositories {
 dependencies {
     compile(kotlin("reflect", kotlinVersion))
     compile(gradleApi())
-    compile("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.3")
+    compile("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4")
     compile("com.gradle.publish:plugin-publish-plugin:0.9.10")
     compile("org.jetbrains.dokka:dokka-gradle-plugin:0.9.17")
 

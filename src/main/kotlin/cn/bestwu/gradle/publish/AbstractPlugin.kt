@@ -124,16 +124,17 @@ abstract class AbstractPlugin : Plugin<Project> {
             val mavenRepoUsername = project.findProperty("mavenRepo.username") as String?
             val mavenRepoPassword = project.findProperty("mavenRepo.password") as String?
 
-            p.repositories {
-                it.maven {
-                    it.name = mavenRepoName
-                    it.url = URI(mavenRepoUrl)
-                    it.credentials {
-                        it.username = mavenRepoUsername
-                        it.password = mavenRepoPassword
+            if (mavenRepoUrl != null)
+                p.repositories {
+                    it.maven {
+                        it.name = mavenRepoName
+                        it.url = URI(mavenRepoUrl)
+                        it.credentials {
+                            it.username = mavenRepoUsername
+                            it.password = mavenRepoPassword
+                        }
                     }
                 }
-            }
 
             p.publications.create("mavenJava", MavenPublication::class.java) { m ->
                 if (project.plugins.hasPlugin("war")) {
