@@ -18,7 +18,7 @@ class GroovyPublishPlugin : AbstractPlugin() {
     override fun apply(project: Project) {
         beforeConfigigure(project)
 
-        project.afterEvaluate {
+        project.afterEvaluate { _ ->
             project.tasks.withType(Groovydoc::class.java){
                 it.source(project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets.getByName("main").allSource)
             }

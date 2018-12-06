@@ -17,7 +17,7 @@ class PublishPlugin: AbstractPlugin() {
     override fun apply(project: Project) {
         beforeConfigigure(project)
 
-        project.afterEvaluate {
+        project.afterEvaluate { _ ->
             project.tasks.create("javadocJar", Jar::class.java) {
                 it.classifier = "javadoc"
                 it.from(project.tasks.getByName("javadoc").outputs)

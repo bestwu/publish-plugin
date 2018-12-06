@@ -64,15 +64,6 @@ fun <T : Any> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
         KotlinClosure1(action, this, this)
 
 /**
- * 配置工具类
- */
-fun <T> Any.delegateClosureOf(action: T.() -> Unit) =
-        object : Closure<Unit>(this, this) {
-            @Suppress("unused") // to be called dynamically by Groovy
-            fun doCall() = Cast.uncheckedCast<T>(delegate).action()
-        }
-
-/**
  * 抽象类
  */
 abstract class AbstractPlugin : Plugin<Project> {
@@ -94,8 +85,8 @@ abstract class AbstractPlugin : Plugin<Project> {
             }
         }
 
-        val projectUrl = project.findProperty("projectUrl") as String?
-        val projectVcsUrl = project.findProperty("vcsUrl") as String?
+        val projectUrl = project.findProperty("projectUrl") as? String
+        val projectVcsUrl = project.findProperty("vcsUrl") as? String
 
         configurePublishing(project, projectUrl, projectVcsUrl)
 
@@ -119,17 +110,17 @@ abstract class AbstractPlugin : Plugin<Project> {
     private fun configurePublishing(project: Project, projectUrl: String?, projectVcsUrl: String?) {
         project.extensions.configure(PublishingExtension::class.java) { p ->
 
-            val mavenRepoName = project.findProperty("mavenRepo.name") as String?
-            val mavenRepoUrl = project.findProperty("mavenRepo.url") as String?
-            val mavenRepoUsername = project.findProperty("mavenRepo.username") as String?
-            val mavenRepoPassword = project.findProperty("mavenRepo.password") as String?
+            val mavenRepoName = project.findProperty("mavenRepo.name") as? String
+            val mavenRepoUrl = project.findProperty("mavenRepo.url") as? String
+            val mavenRepoUsername = project.findProperty("mavenRepo.username") as? String
+            val mavenRepoPassword = project.findProperty("mavenRepo.password") as? String
 
             if (mavenRepoUrl != null)
-                p.repositories {
-                    it.maven {
-                        it.name = mavenRepoName
-                        it.url = URI(mavenRepoUrl)
-                        it.credentials {
+                p.repositories { handler ->
+                    handler.maven { repository ->
+                        repository.name = mavenRepoName
+                        repository.url = URI(mavenRepoUrl)
+                        repository.credentials {
                             it.username = mavenRepoUsername
                             it.password = mavenRepoPassword
                         }
@@ -154,15 +145,12 @@ abstract class AbstractPlugin : Plugin<Project> {
                 m.pom.withXml(configurePomXml(project, projectUrl, projectVcsUrl))
             }
 
-
-//            configureUploadArchives(project)
         }
     }
 
     /**
      * 配置 maven publish
      */
-//    private fun configureUploadArchives(project: Project, mavenRepoName: String?, mavenRepoUrl: String?, mavenRepoUsername: String?, mavenRepoPassword: String?, projectUrl: String?, projectVcsUrl: String?) {
     private fun configureUploadArchives(project: Project) {
         project.artifacts(closureOf<ArtifactHandler> {
             add("archives", project.tasks.getByName("javadocJar"))
@@ -170,31 +158,11 @@ abstract class AbstractPlugin : Plugin<Project> {
         })
         println(project.tasks.getAt("publish")::class.java)
         project.extensions.configure(SigningExtension::class.java) {
-            it.isRequired = !((project.version as String?)?.endsWith("-SNAPSHOT") ?: true)
+            it.isRequired = !((project.version as? String)?.endsWith("-SNAPSHOT") ?: true)
             it.sign(project.configurations.getByName("archives"))
         }
 
         UploadRule(project).apply(UPLOAD_ARCHIVES_TASK_NAME)
-//        project.tasks.withType(Upload::class.java) {
-//            repositories {
-//                withConvention(MavenRepositoryHandlerConvention::class) {
-//                    mavenDeployer {
-//                        beforeDeployment {
-//                            project.extensions.getByType(SigningExtension::class.java).signPom(this)
-//                        }
-//                        withGroovyBuilder {
-//                            "repository"("url" to mavenRepoUrl) {
-//                                "authentication"("userName" to mavenRepoUsername, "password" to mavenRepoPassword)
-//                                "releases"("updatePolicy" to "always")
-//                                "snapshots"("updatePolicy" to "always")
-//                            }
-//                        }
-//                        pom.withXml(configurePomXml(project, projectUrl, projectVcsUrl))
-//
-//                    }
-//                }
-//            }
-//        }
     }
 
     /**
@@ -255,7 +223,6 @@ abstract class AbstractPlugin : Plugin<Project> {
                 setPublications(*publicationNames.toTypedArray())
 
                 publish = true
-                //    override = true
 
                 with(pkg) {
                     repo = "maven"
@@ -313,12 +280,6 @@ abstract class AbstractPlugin : Plugin<Project> {
         if (!project.plugins.hasPlugin("com.jfrog.bintray")) {
             project.plugins.apply("com.jfrog.bintray")
         }
-//        if (!project.plugins.hasPlugin(MavenPlugin::class.java)) {
-//            project.plugins.apply(MavenPlugin::class.java)
-//        }
-//        if (!project.plugins.hasPlugin(SigningPlugin::class.java)) {
-//            project.plugins.apply(SigningPlugin::class.java)
-//        }
 
 //        源文件打包Task
         project.pluginManager.apply(JavaPlugin::class.java)

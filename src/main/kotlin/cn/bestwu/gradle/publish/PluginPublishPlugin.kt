@@ -37,12 +37,12 @@ class PluginPublishPlugin : AbstractPlugin() {
                 it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
             }
         }
-        project.afterEvaluate {
+        project.afterEvaluate { _ ->
 
             configureDoc(project)
 
-            val projectUrl = project.findProperty("projectUrl") as String?
-            val projectVcsUrl = project.findProperty("vcsUrl") as String?
+            val projectUrl = project.findProperty("projectUrl") as? String
+            val projectVcsUrl = project.findProperty("vcsUrl") as? String
             configureGradlePlugins(project)
 
 
@@ -117,18 +117,18 @@ class PluginPublishPlugin : AbstractPlugin() {
      * 配置GradlePlugin
      */
     private fun configureGradlePlugins(project: Project) {
-        val gradlePlugin = project.findProperty("gradlePlugin.plugins") as String?
+        val gradlePlugin = project.findProperty("gradlePlugin.plugins") as? String
         gradlePlugin?.split(",")?.forEach { plugin ->
             val pluginId = project.findProperty("gradlePlugin.plugins.$plugin.id") as String
 
-            project.extensions.configure(GradlePluginDevelopmentExtension::class.java) {
-                it.plugins.create(plugin) {
+            project.extensions.configure(GradlePluginDevelopmentExtension::class.java) { extension ->
+                extension.plugins.create(plugin) {
                     it.id = pluginId
                     it.implementationClass = project.findProperty("gradlePlugin.plugins.$plugin.implementationClass") as String
                 }
             }
-            project.extensions.configure(PluginBundleExtension::class.java) {
-                it.plugins.create(plugin) {
+            project.extensions.configure(PluginBundleExtension::class.java) { extension ->
+                extension.plugins.create(plugin) {
                     it.id = pluginId
                     it.displayName = plugin
                 }
