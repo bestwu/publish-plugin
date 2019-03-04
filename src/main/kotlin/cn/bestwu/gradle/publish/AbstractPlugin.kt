@@ -108,7 +108,7 @@ abstract class AbstractPlugin : Plugin<Project> {
     private fun configurePublishing(project: Project, projectUrl: String?, projectVcsUrl: String?) {
         project.extensions.configure(PublishingExtension::class.java) { p ->
 
-            var mavenRepoName = project.findProperty("mavenRepo.name") as? String
+            var mavenRepoName = project.findProperty("mavenRepo.name") as? String ?: "mavenDeployer"
             var mavenRepoUrl = project.findProperty("mavenRepo.url") as? String
             var mavenRepoUsername = project.findProperty("mavenRepo.username") as? String
             var mavenRepoPassword = project.findProperty("mavenRepo.password") as? String
@@ -191,7 +191,8 @@ abstract class AbstractPlugin : Plugin<Project> {
              * 配置pom.xml相关信息
              */
             root.apply {
-                appendNode("packaging", if (project.plugins.hasPlugin("war")) "war" else "jar")
+                if (getAt("packaging") == null)
+                    appendNode("packaging", if (project.plugins.hasPlugin("war")) "war" else "jar")
                 configurePomXml(project, projectUrl, projectVcsUrl)
             }
         }
