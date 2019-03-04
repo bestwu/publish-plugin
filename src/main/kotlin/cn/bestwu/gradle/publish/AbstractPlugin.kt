@@ -17,7 +17,6 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.external.javadoc.StandardJavadocDocletOptions
-import org.gradle.internal.Cast
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 import org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention
@@ -110,11 +109,21 @@ abstract class AbstractPlugin : Plugin<Project> {
     private fun configurePublishing(project: Project, projectUrl: String?, projectVcsUrl: String?) {
         project.extensions.configure(PublishingExtension::class.java) { p ->
 
-            val mavenRepoName = project.findProperty("mavenRepo.name") as? String
-            val mavenRepoUrl = project.findProperty("mavenRepo.url") as? String
-            val mavenRepoUsername = project.findProperty("mavenRepo.username") as? String
-            val mavenRepoPassword = project.findProperty("mavenRepo.password") as? String
+            var mavenRepoName = project.findProperty("mavenRepo.name") as? String
+            var mavenRepoUrl = project.findProperty("mavenRepo.url") as? String
+            var mavenRepoUsername = project.findProperty("mavenRepo.username") as? String
+            var mavenRepoPassword = project.findProperty("mavenRepo.password") as? String
 
+            if (project.version.toString().endsWith("SNAPSHOT")) {
+                mavenRepoName = project.findProperty("mavenRepo.snapshots.name") as? String
+                        ?: mavenRepoName
+                mavenRepoUrl = project.findProperty("mavenRepo.snapshots.url") as? String
+                        ?: mavenRepoUrl
+                mavenRepoUsername = project.findProperty("mavenRepo.snapshots.username") as? String
+                        ?: mavenRepoUsername
+                mavenRepoPassword = project.findProperty("mavenRepo.snapshots.password") as? String
+                        ?: mavenRepoPassword
+            }
             if (mavenRepoUrl != null)
                 p.repositories { handler ->
                     handler.maven { repository ->
@@ -239,7 +248,8 @@ abstract class AbstractPlugin : Plugin<Project> {
                     with(version) {
                         desc = "${project.name} ${project.version}"
                         with(mavenCentralSync) {
-                            sync = (project.findProperty("mavenCentralSync") as? String)?.toBoolean() ?: false
+                            sync = (project.findProperty("mavenCentralSync") as? String)?.toBoolean()
+                                    ?: false
                             user = project.findProperty("mavenCentralUsername") as? String
                             password = project.findProperty("mavenCentralPassword") as? String
                             close = "1"

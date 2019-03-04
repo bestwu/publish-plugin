@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "cn.bestwu.gradle"
-version = "0.0.31"
+version = "0.0.32-SNAPSHOT"
 
 repositories {
     jcenter()
