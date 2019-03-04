@@ -2,6 +2,7 @@ package cn.bestwu.gradle.publish
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.javadoc.Javadoc
 
 /**
  *
@@ -9,7 +10,7 @@ import org.gradle.api.tasks.bundling.Jar
  *
  * @author Peter Wu
  */
-class PublishPlugin: AbstractPlugin() {
+class PublishPlugin : AbstractPlugin() {
 
     /**
      * {@inheritDoc}

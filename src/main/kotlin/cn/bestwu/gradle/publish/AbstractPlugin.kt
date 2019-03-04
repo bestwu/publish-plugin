@@ -6,7 +6,6 @@ import groovy.util.Node
 import groovy.util.NodeList
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.internal.plugins.UploadRule
@@ -283,7 +282,7 @@ abstract class AbstractPlugin : Plugin<Project> {
     /**
      * 前置配置
      */
-    protected fun beforeConfigigure(project: Project): Task {
+    protected fun beforeConfigigure(project: Project) {
         if (!project.plugins.hasPlugin("maven-publish")) {
             project.plugins.apply("maven-publish")
         }
@@ -293,10 +292,13 @@ abstract class AbstractPlugin : Plugin<Project> {
 
 //        源文件打包Task
         project.pluginManager.apply(JavaPlugin::class.java)
-        return project.tasks.create("sourcesJar", Jar::class.java) {
+        project.tasks.create("sourcesJar", Jar::class.java) {
             it.dependsOn("classes")
             it.classifier = "sources"
             it.from(project.convention.getPlugin(JavaPluginConvention::class.java).sourceSets.getByName("main").allSource)
+        }
+        project.tasks.withType(Javadoc::class.java) {
+            it.isFailOnError = false
         }
     }
 

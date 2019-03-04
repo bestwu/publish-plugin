@@ -35,6 +35,7 @@ class PluginPublishPlugin : AbstractPlugin() {
             project.tasks.create("dokkaJavadoc", DokkaTask::class.java) {
                 it.outputFormat = "javadoc"
                 it.outputDirectory = "${project.buildDir}/dokkaJavadoc"
+                it.noStdlibLink = true
             }
         }
         project.afterEvaluate { _ ->
