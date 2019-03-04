@@ -4,7 +4,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.3.10"
-    id("cn.bestwu.plugin-publish")
+}
+apply {
+    plugin("cn.bestwu.publish")
+    plugin("com.jfrog.artifactory")
 }
 
 group = "cn.bestwu.gradle"
@@ -26,8 +29,8 @@ dependencies {
     }
     testCompile(kotlin("test-junit"))
 }
-tasks {
-    "dokkaJavadoc"(DokkaTask::class) {
-        noStdlibLink = true
-    }
-}
+//tasks {
+//    "dokkaJavadoc"(DokkaTask::class) {
+//        noStdlibLink = true
+//    }
+//}
